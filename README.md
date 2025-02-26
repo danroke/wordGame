@@ -1,7 +1,11 @@
 
 # wordGame
 
-wordle like game in python
+This project is a wordle like game clone I made in python. \
+Please make sure to run the following commands before executing the main.py: \
+
+* pip install requests
+* pip install BeautifulSoup4
 
 ## Explanation
 
