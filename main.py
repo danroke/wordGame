@@ -3,34 +3,34 @@ from bs4 import BeautifulSoup
 import random
 import re
 
+def toLowerCase(match):
+  return match.group(1).lower()
+
 def select_word(words):
   size = len(words)
   prompt_num = random.sample(range(0,size),1)
   prompt = words[prompt_num[0]]
-  print("before:",prompt)
   # convert prompt to all lower case for easier matching
-  #prompt = re.sub(r'([A-Z])\1',lambda pat: pat.group(1).lower(), prompt)
-  callback = lambda pattern: pattern.group(1).lower()
-  re.sub(r'([A-Z])\1',callback, prompt)
-  print("after:",prompt)
+  prompt = prompt.upper()
   return prompt
 
 def replace_char(new_char, word, pos):
   if pos == 0:
     return new_char + word[1:]
   if pos == 4:
-    return word[:3] + new_char
+    return word[:4] + new_char
   return word[:pos] + new_char + word[pos + 1:]
 
 def start_game(word):
-  explain = input("Welcome to Word Game! Would you like an explanation? (y/n):")
+  explain = input("\nWelcome to Word Game! Would you like an explanation? (y/n):")
   if explain == ('y' or 'Y'):
     print("\nA random 5 letter word has been selected. It is your job to try to guess this word in 5 guesses or less! After each guess you will be given feedback on how close your guess was.")
     print("If your guess shares no letters with the word the feedback will look like this: ***** 0")
-    print("If your guess has a correct letter it will display like this: *A*** 1")
+    print("If your guess has a correct letter it will display like this: *A*** 0")
     print("If you match a letter but it is in the wrong position it, the number after the word will display how many letters they share.")
-    print("For example if the word is TABLE and you guessed ASSET the feedback would be like this: ***** 3")
-    print("I hope that helps, goodluck!\n\n")
+    print("For example, if the word is TABLE and you guessed ASSET the feedback would be like this: ***** 3")
+    print("Another example, if the word is TABLE and you guessed TRADE the feedback would be like this: T***E 1")
+    print("\nI hope that helps, goodluck!\n\n")
   elif explain != ('n' or 'N' or 'y' or 'Y'):
     print("Error: invalid response")
     exit(1)
@@ -38,11 +38,11 @@ def start_game(word):
   # entered n/N, start game as normal
   guess_count = 5
   while(guess_count > 0):
-    ### for debugging , PLEASE REMOVE
-    print("~~ ",word," ~~")
-    ###
     print("You have",guess_count," guess(es) remaining.")
     guess = input("\n Enter your guess: ")
+    # change to all lower for better matching
+    guess = guess.upper()
+
     if len(guess) != 5:
       print("That guess was not length 5, try again!\n")
       continue
@@ -79,14 +79,19 @@ def start_game(word):
 
       if re.search(char_0, word):
         feedback = replace_char(guess[0],feedback,0)
+        feedback_count -= 1
       if re.search(char_1, word):
         feedback = replace_char(guess[1],feedback,1)
+        feedback_count -= 1
       if re.search(char_2, word):
         feedback = replace_char(guess[2],feedback,2)
+        feedback_count -= 1
       if re.search(char_3, word):
         feedback = replace_char(guess[3],feedback,3)
-      if re.search(char_4, feedback):
+        feedback_count -= 1
+      if re.search(char_4, word):
         feedback = replace_char(guess[4],feedback,4)
+        feedback_count -= 1
         
       print("\n Feedback: ", feedback," ", feedback_count,"\n")
       guess_count -= 1
