@@ -1,6 +1,0 @@
- Enter your guess: joins
-feedback_count =  3
-
- Feedback:  *.....n.i.....***   3 
-
-~~  Joint  ~~
