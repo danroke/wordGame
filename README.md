@@ -2,7 +2,7 @@
 # wordGame
 
 This project is a wordle like game clone I made in python. \
-Please make sure to run the following commands before executing the main.py: \
+Please make sure to run the following commands before executing the main.py:
 
 * pip install requests
 * pip install BeautifulSoup4
