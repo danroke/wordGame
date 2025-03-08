@@ -21,6 +21,28 @@ def replace_char(new_char, word, pos):
     return word[:4] + new_char
   return word[:pos] + new_char + word[pos + 1:]
 
+def letter_search(guess, word):
+  correct_letters = []
+  for letter in guess:
+    if letter in word:
+      correct_letters.append(letter)
+  return correct_letters
+      
+
+def update_lists(guessed_list, word, remainder_list):
+  # returns tuple of updated lists
+  for letter in word:
+    if letter not in guessed_list:
+      guessed_list.append(letter.upper())
+      if letter in remainder_list:
+        remainder_list.remove(letter.upper())
+    else:
+      continue
+  guessed_list.sort()
+  remainder_list.sort()
+  return (guessed_list, remainder_list)
+
+
 def start_game(word):
   explain = input("\nWelcome to Word Game! Would you like an explanation? (y/n):")
   if explain == ('y' or 'Y'):
@@ -34,6 +56,10 @@ def start_game(word):
   elif explain != ('n' or 'N' or 'y' or 'Y'):
     print("Error: invalid response")
     exit(1)
+
+  # track used letters
+  guessed_letters = []
+  remaining_letters = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
   
   # entered n/N, start game as normal
   guess_count = 5
@@ -54,7 +80,11 @@ def start_game(word):
     else:
       feedback = "*****"
       feedback_count = 0
-      # firstly, check if each character has a match in the string
+      # get a shortlist of shared letters between the guess and the word
+      
+      #matches = letter_search(guess, word)
+      
+      # check if each character has a match in the string
       # check position 0
       if re.search(guess[0],word):
         feedback_count += 1
@@ -92,8 +122,15 @@ def start_game(word):
       if re.search(char_4, word):
         feedback = replace_char(guess[4],feedback,4)
         feedback_count -= 1
-        
+
+      # at this point if the feedback_count != len(matches), there are duplicate letters
+
+      list_tuple = update_lists(guessed_letters, guess, remaining_letters)
+      guessed_letters = list_tuple[0]
+      remaining_letters = list_tuple[1]  
       print("\n Feedback: ", feedback," ", feedback_count,"\n")
+      print("Guessed letters: ", guessed_letters)
+      print("\nLetters that have not been used: ", remaining_letters)
       guess_count -= 1
 
   # exceeded guess limit
