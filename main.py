@@ -3,14 +3,12 @@ from bs4 import BeautifulSoup
 import random
 import re
 
-def toLowerCase(match):
-  return match.group(1).lower()
-
 def select_word(words):
+  # Select a random word from the list for the player to guess
   size = len(words)
   prompt_num = random.sample(range(0,size),1)
   prompt = words[prompt_num[0]]
-  # convert prompt to all lower case for easier matching
+  # Convert prompt to all upper case for easier matching
   prompt = prompt.upper()
   return prompt
 
@@ -21,16 +19,9 @@ def replace_char(new_char, word, pos):
     return word[:4] + new_char
   return word[:pos] + new_char + word[pos + 1:]
 
-def letter_search(guess, word):
-  correct_letters = []
-  for letter in guess:
-    if letter in word:
-      correct_letters.append(letter)
-  return correct_letters
       
-
 def update_lists(guessed_list, word, remainder_list):
-  # returns tuple of updated lists
+  # Returns tuple of updated lists
   for letter in word:
     if letter not in guessed_list:
       guessed_list.append(letter.upper())
@@ -57,16 +48,17 @@ def start_game(word):
     print("Error: invalid response")
     exit(1)
 
-  # track used letters
+  # Track used letters
   guessed_letters = []
   remaining_letters = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
+  feedback_collection = []
   
-  # entered n/N, start game as normal
+  # Entered n/N, start game as normal
   guess_count = 5
   while(guess_count > 0):
     print("You have",guess_count," guess(es) remaining.")
     guess = input("\n Enter your guess: ")
-    # change to all lower for better matching
+    # Change to all upper case for better matching
     guess = guess.upper()
 
     if len(guess) != 5:
@@ -80,60 +72,54 @@ def start_game(word):
     else:
       feedback = "*****"
       feedback_count = 0
-      # get a shortlist of shared letters between the guess and the word
-      
-      #matches = letter_search(guess, word)
-      
-      # check if each character has a match in the string
-      # check position 0
-      if re.search(guess[0],word):
-        feedback_count += 1
-      # check position 1
-      if re.search(guess[1],word):
-        feedback_count += 1
-      # check position 2
-      if re.search(guess[2],word):
-        feedback_count += 1
-      # check position 3
-      if re.search(guess[3],word):
-        feedback_count += 1
-      # check position 4
-      if re.search(guess[4],word):
-        feedback_count += 1
-      # now check for exact matches, and add to feedback if so
+      # Get a shortlist of shared letters between the guess and the word
+      # Check if each character has a match in the string
+      letter_pos = 0
+      for letter in guess:
+        if re.search(letter, word):
+          # Add the letter to feedback as lowercase (yellow match = right letter, wrong position)
+          feedback = replace_char(letter.lower(), feedback, letter_pos)
+          feedback_count += 1
+        letter_pos += 1
+
+      # Now check for exact matches, and add to feedback as uppercase (replace yellow matches with green matches)
       char_0 = guess[0] + "...."
       char_1 = "." + guess[1] + "..."
       char_2 = ".." + guess[2] + ".."
       char_3 = "..." + guess[3] + "."
       char_4 = "...." + guess[4]
-
+      # Insert correct letters into feedback, and decrements feedback count
       if re.search(char_0, word):
-        feedback = replace_char(guess[0],feedback,0)
+        feedback = replace_char(guess[0].upper(),feedback,0)
         feedback_count -= 1
       if re.search(char_1, word):
-        feedback = replace_char(guess[1],feedback,1)
+        feedback = replace_char(guess[1].upper(),feedback,1)
         feedback_count -= 1
       if re.search(char_2, word):
-        feedback = replace_char(guess[2],feedback,2)
+        feedback = replace_char(guess[2].upper(),feedback,2)
         feedback_count -= 1
       if re.search(char_3, word):
-        feedback = replace_char(guess[3],feedback,3)
+        feedback = replace_char(guess[3].upper(),feedback,3)
         feedback_count -= 1
       if re.search(char_4, word):
-        feedback = replace_char(guess[4],feedback,4)
+        feedback = replace_char(guess[4].upper(),feedback,4)
         feedback_count -= 1
 
-      # at this point if the feedback_count != len(matches), there are duplicate letters
 
       list_tuple = update_lists(guessed_letters, guess, remaining_letters)
       guessed_letters = list_tuple[0]
       remaining_letters = list_tuple[1]  
+      
       print("\n Feedback: ", feedback," ", feedback_count,"\n")
+      if feedback_collection:
+        print("Previous feedbacks:", feedback_collection)
       print("Guessed letters: ", guessed_letters)
-      print("\nLetters that have not been used: ", remaining_letters)
+      print("Letters that have not been used: ", remaining_letters,"\n")
+
+      feedback_collection.append((feedback, feedback_count))
       guess_count -= 1
 
-  # exceeded guess limit
+  # Exceeded guess limit
   print("You have guessed to many times. The word was",word,"\nGood try, thanks for playing!") 
   return
 
@@ -144,27 +130,23 @@ def main():
   response = requests.get(url)
   words = []
 
-  # request page data from url
+  # Request page data from url
   if response.status_code == 200:
     soup = BeautifulSoup(response.text, 'html.parser')
-
-    # inspect html to find where data we want is stored
-    #with open("debug.txt", "w") as file:
-    #  file.write(response.text)
     
-    # search html for the table
+    # Search html for the table
     table = soup.find('table', class_ = "table table-bordered")
     if table:
-      # seperate table into each element/word
+      # Seperate table into each element/word
       for line in table.find_all('span', style="font-weight: 400;"):
-        # append each word into our array
+        # Append each word into our array
         word = line.get_text()
         words.append(word)
   else:
     print("Error: failed to reach word source website")
     exit(1)
 
-  # now all words are saved in our array
+  # Now all words are saved in our array,
   # select a random word for this game
   game_word = select_word(words)
   start_game(game_word)
